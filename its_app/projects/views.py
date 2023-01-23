@@ -13,11 +13,11 @@ class RetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Project.objects.all()
     serializer_class = ProjectSerializer
-    authentication_classes = [
-        authentication.SessionAuthentication,
-        authentication.TokenAuthentication,
-    ]
-    permission_classes = [permissions.IsAuthenticated]
+    # authentication_classes = [
+    #     authentication.SessionAuthentication,
+    #     authentication.TokenAuthentication,
+    # ]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         print('request = ', request)
@@ -39,11 +39,11 @@ class ProjectListCreateAPIView(ListCreateAPIView):
     def get_queryset(self):
         return Project.objects.all()
     serializer_class = ProjectSerializer
-    authentication_classes = [
-        authentication.SessionAuthentication,
-        authentication.TokenAuthentication,
-    ]
-    permission_classes = [permissions.IsAuthenticated]
+    # authentication_classes = [
+    #     authentication.SessionAuthentication,
+    #     authentication.TokenAuthentication,
+    # ]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         # serializer.save(user=self.request.user)
