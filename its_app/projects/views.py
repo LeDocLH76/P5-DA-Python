@@ -4,7 +4,6 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
-from rest_framework import authentication, permissions
 from its_app.projects.models import Project
 from its_app.projects.serializers import ProjectSerializer
 

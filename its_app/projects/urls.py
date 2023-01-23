@@ -17,6 +17,7 @@ from its_app.projects.views import (
 urlpatterns = [
     # path("", include(router.urls)),
     # path("projects/", project_list_or_create, name='projects'),
+
     path(
         "projects/<int:pk>/",
         RetrieveUpdateDestroyAPIView.as_view(),
