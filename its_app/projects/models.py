@@ -1,5 +1,11 @@
 from django.db import models
-from its_app.users.models import MyUser
+from django.contrib.auth import get_user_model
+
+
+class Contributor(models.Model):
+    user_id = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    project_id = models.ForeignKey('Project', on_delete=models.CASCADE)
+    role = models.CharField(max_length=20)
 
 
 class Project(models.Model):
@@ -7,7 +13,7 @@ class Project(models.Model):
     description = models.CharField(max_length=1024)
     type = models.CharField(max_length=255)
     users = models.ManyToManyField(
-        MyUser,
-        through='Contributor',
+        get_user_model(),
+        through=Contributor,
         # through_fields=('project_id', 'user_id')
     )

@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'its_app',
     'its_app.users',
-    'its_app.contributors',
     'its_app.projects',
 ]
 
