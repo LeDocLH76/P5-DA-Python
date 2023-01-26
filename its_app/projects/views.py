@@ -1,5 +1,9 @@
+
 # from rest_framework.decorators import api_view
 # from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
+from rest_framework import permissions
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
@@ -12,11 +16,11 @@ class RetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Project.objects.all()
     serializer_class = ProjectSerializer
-    # authentication_classes = [
-    #     authentication.SessionAuthentication,
-    #     authentication.TokenAuthentication,
-    # ]
-    # permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [
+        JWTAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         print('request = ', request)
@@ -38,22 +42,18 @@ class ProjectListCreateAPIView(ListCreateAPIView):
     def get_queryset(self):
         return Project.objects.all()
     serializer_class = ProjectSerializer
-    # authentication_classes = [
-    #     authentication.SessionAuthentication,
-    #     authentication.TokenAuthentication,
-    # ]
-    # permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [
+        JWTAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # serializer.save(user=self.request.user)
-        # print('serializer = ', serializer)
-        # print('serializer.validated_data = ', serializer.validated_data)
-        title = serializer.validated_data.get('title')
-        type = serializer.validated_data.get('type')
-        # title += " added before save"
-        # type += " added before save"
-        serializer.save(title=title, type=type)
-        # return super().perform_create(serializer)
+        print('user = ', self.request.user)
+        user = self.request.user
+        project_obj = serializer.save()
+        print('project obj = ', project_obj)
+        project_obj.users.add(user)
 
 
 # @api_view(['GET', 'POST'])
