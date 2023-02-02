@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model, login
+from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, ListAPIView
@@ -18,6 +19,8 @@ class RegisterAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.create(serializer.data)
+        group = Group.objects.get(name='BasicUsers')
+        user.groups.add(group)
         print(user)
         response = {
             'message': 'User succesfully created',
@@ -39,10 +42,10 @@ class UserLoginAPIView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
         print('user = ', user)
-        print('user.username = ', user.username)
-        print('user.password = ', user.password)
+        # print('user.username = ', user.username)
+        # print('user.password = ', user.password)
         tokens = self.get_tokens_for_user(user)
-        print('Tokens = ', tokens)
+        # print('Tokens = ', tokens)
         login(request, user)
         return Response(
             data={
