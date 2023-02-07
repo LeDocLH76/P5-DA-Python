@@ -21,10 +21,15 @@ class RegisterAPIView(GenericAPIView):
         user = serializer.create(serializer.data)
         group = Group.objects.get(name='BasicUsers')
         user.groups.add(group)
-        print(user)
         response = {
             'message': 'User succesfully created',
-            'data': {"username": user.username, "password": user.password}
+            'data': {
+                "username": user.username,
+                "password": user.password,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
         }
         return Response(data=response, status=status.HTTP_201_CREATED)
 
@@ -58,7 +63,7 @@ class UserLoginAPIView(GenericAPIView):
 
     def get_tokens_for_user(self, user):
         refresh = RefreshToken.for_user(user)
-        print('refresh = ', refresh)
+        # print('refresh = ', refresh)
         return {
             'refresh': str(refresh),
             'access': str(refresh.access_token),
