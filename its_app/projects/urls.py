@@ -1,33 +1,31 @@
 from django.urls import path, include
 from rest_framework import routers
-
-from its_app.projects.views import RetrieveUpdateDestroyViewset
-# from its_app.projects.views import project_list_or_create
+from its_app.projects.views import ProjectRetrieveUpdateDestroyViewset
 from its_app.projects.views import (
-    # RetrieveUpdateDestroyAPIView,
-    # RetrieveAPIView,
-    # UpdateAPIView,
+    ContributorCreateReadDeleteAPIView,
     ProjectListCreateAPIView,
 )
 
-
 router = routers.SimpleRouter()
-
-router.register(r"projects", RetrieveUpdateDestroyViewset, basename='project')
-
+router.register(
+    r"projects", ProjectRetrieveUpdateDestroyViewset, basename='project'
+)
 
 urlpatterns = [
     path("", include(router.urls)),
-    # path("projects/", project_list_or_create, name='projects'),
-
-    # path(
-    #     "projects/<int:pk>/",
-    #     RetrieveUpdateDestroyAPIView.as_view(),
-    #     name='projects_detail_update_delete'
-    # ),
     path(
         "projects/",
         ProjectListCreateAPIView.as_view(),
         name='projects_list_create'
+    ),
+    path(
+        "projects/<int:project_pk>/users/",
+        ContributorCreateReadDeleteAPIView.as_view(),
+        name='project_users'
+    ),
+    path(
+        "projects/<int:project_pk>/users/<int:user_pk>",
+        ContributorCreateReadDeleteAPIView.as_view(),
+        name='project_users_delete'
     ),
 ]

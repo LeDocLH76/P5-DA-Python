@@ -15,8 +15,7 @@ class Contributor(models.Model):
     role = models.CharField(max_length=4, choices=USER_ROLES)
 
     # class Meta:
-    #     unique_together = ('user', 'project')
-    # UniqueConstraint(fields=['user','project'])
+    #     constraints = [models.constraints.UniqueConstraint(fields=['user','project'])]
 
 
 class Project(models.Model):
@@ -38,4 +37,3 @@ class Project(models.Model):
         get_user_model(),
         through=Contributor,
     )
-    # Add owner fk
