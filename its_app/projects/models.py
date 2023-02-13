@@ -14,8 +14,13 @@ class Contributor(models.Model):
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     role = models.CharField(max_length=4, choices=USER_ROLES)
 
-    # class Meta:
-    #     constraints = [models.constraints.UniqueConstraint(fields=['user','project'])]
+    class Meta:
+        constraints = [
+            models.constraints.UniqueConstraint(
+                fields=['user', 'project'],
+                name='contributor_user_project'
+            )
+        ]
 
 
 class Project(models.Model):
@@ -31,7 +36,7 @@ class Project(models.Model):
         (IOS, 'iOS'),
     ]
     title = models.CharField(max_length=255, blank=False, )
-    description = models.CharField(max_length=1024, blank=False)
+    description = models.TextField(blank=False)
     type = models.CharField(max_length=4, choices=PROJECT_TYPES)
     users = models.ManyToManyField(
         get_user_model(),

@@ -18,28 +18,36 @@ class Issue(models.Model):
 
     ISSUE_TAG = [
         (BUG, 'Bug'),
-        (IMPROVEMENT, 'Improvement')
+        (IMPROVEMENT, 'Improvement'),
         (TASK, 'Task'),
     ]
 
     ISSUE_PRIORITY = [
         (LOW, 'Low'),
-        (MEDIUM, 'Medium')
+        (MEDIUM, 'Medium'),
         (HIGHT, 'Hight'),
     ]
 
     ISSUE_STATUS = [
         (TODO, 'Todo'),
-        (ONGOING, 'Ongoing')
+        (ONGOING, 'Ongoing'),
         (COMPLETED, 'Completed'),
     ]
 
     title = models.CharField(max_length=255, blank=False)
-    description = models.CharField(max_length=1024, blank=False)
+    description = models.TextField(blank=False)
     tag = models.CharField(max_length=4, choices=ISSUE_TAG)
     priority = models.CharField(max_length=4, choices=ISSUE_PRIORITY)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     status = models.CharField(max_length=4, choices=ISSUE_STATUS)
-    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    assignee = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='author_issue_set'
+    )
+    assignee = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='assignee_issue_set'
+    )
     created_time = models.DateTimeField(default=timezone.now)
