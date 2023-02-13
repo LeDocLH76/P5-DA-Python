@@ -26,6 +26,6 @@ urlpatterns = [
     path(
         "projects/<int:project_pk>/users/<int:user_pk>",
         ContributorCreateReadDeleteAPIView.as_view(),
-        name='project_users_delete'
+        name='project_users_details'
     ),
 ]

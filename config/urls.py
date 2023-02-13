@@ -24,5 +24,6 @@ urlpatterns = [
     # path('api-auth/logout/', views.LogoutView.as_view(), name='DRF_logout'),
     # path('api-auth/login/', UserLoginAPIView.as_view(), name='DRF_login'),
     path('', include('its_app.users.urls')),
-    path('', include('its_app.projects.urls'))
+    path('', include('its_app.projects.urls')),
+    path('', include('its_app.issues.urls')),
 ]

@@ -1,24 +1,21 @@
-
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, viewsets, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.generics import (
-    ListCreateAPIView, ListAPIView, CreateAPIView,
-)
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from its_app.projects.models import Project, Contributor
-from its_app.projects.serializers import ProjectSerializer, UserSerializer
-from its_app.users.models import MyUser
 from its_app.projects.permissions import IsProjectOwner
+from its_app.projects.serializers import ProjectSerializer, UserSerializer
 
 
 class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet):
@@ -195,7 +192,7 @@ class ContributorCreateReadDeleteAPIView(
         print('request.data = ', request.data)
         username = request.data['username']
         print('username = ', username)
-        user_obj = get_object_or_404(MyUser, username=username)
+        user_obj = get_object_or_404(get_user_model(), username=username)
         print('user_obj =', user_obj)
         project_contributors = self._find_contributors(project_pk)
         if user_obj in project_contributors:
@@ -220,7 +217,7 @@ class ContributorCreateReadDeleteAPIView(
                 'You are not project owner',
                 status=status.HTTP_403_FORBIDDEN
             )
-        user_to_remove = get_object_or_404(MyUser, pk=user_pk)
+        user_to_remove = get_object_or_404(get_user_model(), pk=user_pk)
         print("user to remove = ", user_to_remove)
         if not user_to_remove:
             return Response(
