@@ -190,7 +190,10 @@ class ContributorCreateReadDeleteAPIView(
             )
         print('project_obj = ', project_obj)
         print('request.data = ', request.data)
+
+# Must use serializer to validate !! Never trust API user.
         username = request.data['username']
+
         print('username = ', username)
         user_obj = get_object_or_404(get_user_model(), username=username)
         print('user_obj =', user_obj)

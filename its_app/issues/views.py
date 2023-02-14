@@ -1,7 +1,7 @@
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, status
@@ -36,10 +36,10 @@ class IssueCreateReadUpdateDeleteAPIView(
         'projects.add_project',
     )
 
-    def _get_project(self, request, pk):
+    def _get_project(self, user, project_pk):
         queryset = Project.objects.filter(
-            users=request.user)
-        project_obj = get_object_or_404(queryset, pk=pk)
+            users=user)
+        project_obj = get_object_or_404(queryset, pk=project_pk)
         return project_obj
 
     def _get_user(self, user_pk):
@@ -55,45 +55,52 @@ class IssueCreateReadUpdateDeleteAPIView(
         issue_obj = get_object_or_404(queryset, pk=issue_pk)
         return issue_obj
 
-    def _fill_assignee(self, data, author):
+    def _fill_assignee(self, data, author_obj, project_obj):
         try:
             assignee_pk = data.pop('assignee')
-            assignee = self._get_user(assignee_pk)
+            assignee_obj = self._get_user(assignee_pk)
+            try:
+                queryset = Project.objects.filter(
+                    users=assignee_obj).get(pk=project_obj.pk)
+                print('queryset = ', queryset)
+            except ObjectDoesNotExist:
+                assignee_obj = author_obj
+
         except KeyError:
-            assignee = author
-        data['assignee'] = assignee.pk
+            assignee_obj = author_obj
+        data['assignee'] = assignee_obj.pk
         return data
 
     def get(self, request, project_pk=None, issue_pk=None):
-        self._get_project(request, project_pk)
+        user = request.user
+        self._get_project(user, project_pk)
         project_issues = Issue.objects.filter(project=project_pk)
         serializer = IssueSerializer(project_issues, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, project_pk=None, issue_pk=None):
-        project_obj = self._get_project(request, project_pk)
         author_obj = request.user
+        project_obj = self._get_project(author_obj, project_pk)
         data = request.data.copy()
-        data = self._fill_assignee(data, author_obj)
+        data = self._fill_assignee(data, author_obj, project_obj)
         serializer = IssueSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(
             project=project_obj,
             author=author_obj,
-            assignee=author_obj
         )
         return Response(
-            'Issue succesfully created',
+            serializer.data,
             status=status.HTTP_201_CREATED
         )
 
     def put(self, request, project_pk=None, issue_pk=None):
-        project_obj = self._get_project(request, project_pk)
         author_obj = request.user
+        project_obj = self._get_project(author_obj, project_pk)
         issue_obj = self._get_issue(author_obj, project_obj, issue_pk)
         self.check_object_permissions(request, issue_obj)
         data = request.data.copy()
-        data = self._fill_assignee(data, author_obj)
+        data = self._fill_assignee(data, author_obj, project_obj)
         serializer = IssueSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         assignee_pk = data['assignee']
@@ -101,17 +108,16 @@ class IssueCreateReadUpdateDeleteAPIView(
         data['assignee'] = assignee_obj
         serializer.update(issue_obj, data)
         return Response(
-            'Issue succesfully updated',
+            serializer.data,
             status=status.HTTP_201_CREATED
         )
 
     def delete(self, request, project_pk=None, issue_pk=None):
-        project_obj = self._get_project(request, project_pk)
         author_obj = request.user
+        project_obj = self._get_project(author_obj, project_pk)
         issue_obj = self._get_issue(author_obj, project_obj, issue_pk)
         self.check_object_permissions(request, issue_obj)
         issue_obj.delete()
-
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
