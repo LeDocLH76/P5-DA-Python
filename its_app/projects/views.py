@@ -147,37 +147,36 @@ class ContributorCreateReadDeleteAPIView(
         'projects.delete_project',
     )
 
-    def _get_project(self, request, pk):
-        queryset = Project.objects.filter(
-            users=request.user)
-        project_obj = get_object_or_404(queryset, pk=pk)
-        return project_obj
-
-    def _find_contributors(self, pk):
-        project_contributors = [
-            record.user
-            for
-            record in Contributor.objects.filter(project=pk)
-        ]
-        return project_contributors
-
     def get(self, request, project_pk=None, user_pk=None):
-        project_obj = self._get_project(request, project_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         self.check_object_permissions(request, project_obj)
-        project_contributors = self._find_contributors(project_pk)
+        project_contributors = project_obj.get_contributors
         serializer = UserSerializer(project_contributors, many=True)
         return Response(serializer.data)
 
     def post(self, request, project_pk=None, user_pk=None):
-        project_obj = self._get_project(request, project_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         self.check_object_permissions(request, project_obj)
         serializer = AddUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
-        user_obj = get_object_or_404(get_user_model(), username=username)
-
-        project_contributors = self._find_contributors(project_pk)
-        if user_obj in project_contributors:
+        user_obj = get_user_model().get_user(username=username)
+        if user_obj is None:
+            return Response(
+                'User does not exist',
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if user_obj in project_obj.get_contributors:
             return Response(
                 'This user is already added',
                 status=status.HTTP_400_BAD_REQUEST
@@ -192,19 +191,20 @@ class ContributorCreateReadDeleteAPIView(
         )
 
     def delete(self, request, project_pk=None, user_pk=None):
-        project_obj = self._get_project(request, project_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         self.check_object_permissions(request, project_obj)
-        try:
-            user_to_remove = get_user_model().objects.get(pk=user_pk)
-        except get_user_model().DoesNotExist:
-            user_to_remove = None
-        if not user_to_remove:
+        user_to_remove = get_user_model().get_user(user_pk=user_pk)
+        if user_to_remove is None:
             return Response(
                 'User does not exist',
                 status=status.HTTP_404_NOT_FOUND
             )
-        project_contributors = self._find_contributors(project_pk)
-        if user_to_remove not in project_contributors:
+        if user_to_remove not in project_obj.get_contributors:
             return Response(
                 'This user is not a contributor for this project',
                 status=status.HTTP_404_NOT_FOUND

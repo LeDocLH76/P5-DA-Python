@@ -51,3 +51,19 @@ class Issue(models.Model):
         related_name='assignee_issue_set'
     )
     created_time = models.DateTimeField(default=timezone.now)
+
+    @classmethod
+    def get_issue(cls, request, project_obj, issue_pk=None):
+        author_obj = request.user
+        if issue_pk:
+            try:
+                issue_obj = cls.objects.filter(
+                    project=project_obj.pk,
+                    author=author_obj.pk
+                ).get(pk=issue_pk)
+            except cls.DoesNotExist:
+                issue_obj = None
+            print('issue_pk')
+            return issue_obj
+
+        return None

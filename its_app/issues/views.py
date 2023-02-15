@@ -1,6 +1,7 @@
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, status
@@ -15,7 +16,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from its_app.issues.models import Issue
 from its_app.issues.permissions import IsIssueOwner
 from its_app.issues.serializer import IssueSerializer
-from its_app.projects.models import Project
+from its_app.projects.models import Contributor, Project
 
 
 class IssueCreateReadUpdateDeleteAPIView(
@@ -35,53 +36,50 @@ class IssueCreateReadUpdateDeleteAPIView(
         'projects.add_project',
     )
 
-    def _get_project(self, user, project_pk):
-        queryset = Project.objects.filter(
-            users=user)
-        project_obj = get_object_or_404(queryset, pk=project_pk)
-        return project_obj
-
-    def _get_user(self, user_pk):
-        queryset = get_user_model().objects.all()
-        user = get_object_or_404(queryset, pk=user_pk)
-        return user
-
-    def _get_issue(self, author_obj, project_obj, issue_pk):
-        queryset = Issue.objects.filter(
-            project=project_obj.pk,
-            author=author_obj.pk
-        )
-        issue_obj = get_object_or_404(queryset, pk=issue_pk)
-        return issue_obj
-
-    def _fill_assignee(self, data, author_obj, project_obj):
+    def _get_assignee(self, data, author_obj):
         try:
             assignee_pk = data.pop('assignee')
-            assignee_obj = self._get_user(assignee_pk)
-            try:
-                queryset = Project.objects.filter(
-                    users=assignee_obj).get(pk=project_obj.pk)
-                print('queryset = ', queryset)
-            except Project.DoesNotExist:
-                assignee_obj = author_obj
-
+            assignee_obj = get_user_model().get_user(user_pk=assignee_pk)
+            if assignee_obj is None:
+                # not exist
+                return None
         except KeyError:
+            # by default
             assignee_obj = author_obj
-        data['assignee'] = assignee_obj.pk
-        return data
+        return assignee_obj
 
     def get(self, request, project_pk=None, issue_pk=None):
-        user = request.user
-        self._get_project(user, project_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         project_issues = Issue.objects.filter(project=project_pk)
         serializer = IssueSerializer(project_issues, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, project_pk=None, issue_pk=None):
         author_obj = request.user
-        project_obj = self._get_project(author_obj, project_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         data = request.data.copy()
-        data = self._fill_assignee(data, author_obj, project_obj)
+        assignee_obj = self._get_assignee(data, author_obj)
+        if assignee_obj is None:
+            return Response(
+                'User to assign not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if assignee_obj not in project_obj.get_contributors:
+            return Response(
+                'User to assign must be contributor before',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        data['assignee'] = assignee_obj.pk
         serializer = IssueSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(
@@ -95,15 +93,34 @@ class IssueCreateReadUpdateDeleteAPIView(
 
     def put(self, request, project_pk=None, issue_pk=None):
         author_obj = request.user
-        project_obj = self._get_project(author_obj, project_pk)
-        issue_obj = self._get_issue(author_obj, project_obj, issue_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
+        issue_obj = Issue.get_issue(request, project_obj, issue_pk)
+        if issue_obj is None:
+            return Response(
+                'Issue not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         self.check_object_permissions(request, issue_obj)
         data = request.data.copy()
-        data = self._fill_assignee(data, author_obj, project_obj)
+        assignee_obj = self._get_assignee(data, author_obj)
+        if assignee_obj is None:
+            return Response(
+                'User to assign not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if assignee_obj not in project_obj.get_contributors:
+            return Response(
+                'User to assign must be contributor before',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        data['assignee'] = assignee_obj.pk
         serializer = IssueSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        assignee_pk = data['assignee']
-        assignee_obj = self._get_user(assignee_pk)
         data['assignee'] = assignee_obj
         serializer.update(issue_obj, data)
         return Response(
@@ -112,9 +129,18 @@ class IssueCreateReadUpdateDeleteAPIView(
         )
 
     def delete(self, request, project_pk=None, issue_pk=None):
-        author_obj = request.user
-        project_obj = self._get_project(author_obj, project_pk)
-        issue_obj = self._get_issue(author_obj, project_obj, issue_pk)
+        project_obj = Project.get_project(request, project_pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
+        issue_obj = Issue.get_issue(request, project_obj, issue_pk)
+        if issue_obj is None:
+            return Response(
+                'Issue not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         self.check_object_permissions(request, issue_obj)
         issue_obj.delete()
         return Response(

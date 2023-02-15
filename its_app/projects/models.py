@@ -42,3 +42,24 @@ class Project(models.Model):
         get_user_model(),
         through=Contributor,
     )
+
+    @classmethod
+    def get_project(cls, request, project_pk=None):
+        if project_pk:
+            try:
+                project_obj = cls.objects.filter(
+                    users=request.user
+                ).get(pk=project_pk)
+            except cls.DoesNotExist:
+                project_obj = None
+            return project_obj
+        return None
+
+    @property
+    def get_contributors(self):
+        project_contributors = [
+            record.user
+            for
+            record in Contributor.objects.filter(project=self.pk)
+        ]
+        return project_contributors
