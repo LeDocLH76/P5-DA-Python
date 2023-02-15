@@ -1,7 +1,6 @@
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, status
@@ -63,7 +62,7 @@ class IssueCreateReadUpdateDeleteAPIView(
                 queryset = Project.objects.filter(
                     users=assignee_obj).get(pk=project_obj.pk)
                 print('queryset = ', queryset)
-            except ObjectDoesNotExist:
+            except Project.DoesNotExist:
                 assignee_obj = author_obj
 
         except KeyError:
