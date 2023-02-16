@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.utils.decorators import method_decorator
-from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, viewsets, status
 from rest_framework.authentication import SessionAuthentication
@@ -22,34 +21,28 @@ from its_app.projects.serializers import (
 )
 
 
-class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
+    permission_classes = [
+        permissions.IsAuthenticated
+        &
+        IsProjectOwner
+    ]
     authentication_classes = [
         JWTAuthentication,
         SessionAuthentication,
     ]
-
-    def _get_project(self, request, pk):
-        queryset = Project.objects.filter(
-            users=request.user)
-        # print('QS = ', queryset)
-        project = get_object_or_404(queryset, pk=pk)
-        return project
-
-    def _check_user_role(self, user, project_obj):
-        user_role = user.contributor_set.get(project=project_obj).role
-        print('user role = ', user_role)
-        print('Contributor.OWNER', Contributor.OWNER)
-        if user_role != Contributor.OWNER:
-            return False
-        return True
 
     @method_decorator(permission_required(
         'projects.view_project',
         raise_exception=True
     ))
     def retrieve(self, request, pk=None):
-        project_obj = self._get_project(request, pk)
+        project_obj = Project.get_project(request, pk)
+        if project_obj is None:
+            return Response(
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
+            )
         serializer = ProjectSerializer(project_obj)
         return Response(serializer.data)
 
@@ -60,13 +53,13 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet):
         raise_exception=True
     ))
     def update(self, request, pk=None):
-        user = self.request.user
-        project_obj = self._get_project(request, pk)
-        if self._check_user_role(user, project_obj) is False:
+        project_obj = Project.get_project(request, pk)
+        if project_obj is None:
             return Response(
-                'Should never appear - You are not project owner',
-                status=status.HTTP_403_FORBIDDEN
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
             )
+        self.check_object_permissions(request, project_obj)
         serializer = ProjectSerializer(project_obj, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -79,13 +72,13 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet):
         raise_exception=True
     ))
     def delete(self, request, pk=None):
-        user = self.request.user
-        project_obj = self._get_project(request, pk)
-        if self._check_user_role(user, project_obj) is False:
+        project_obj = Project.get_project(request, pk)
+        if project_obj is None:
             return Response(
-                'Should never appear - You are not project owner',
-                status=status.HTTP_403_FORBIDDEN
+                'Project not found',
+                status=status.HTTP_404_NOT_FOUND
             )
+        self.check_object_permissions(request, project_obj)
         project_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -105,11 +98,6 @@ class ProjectListCreateAPIView(PermissionRequiredMixin, ListCreateAPIView):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        print('user = ', self.request.user)
-        print('user user_permissions = ',
-              self.request.user.get_user_permissions())
-        print('user group_permissions = ',
-              self.request.user.get_group_permissions())
         queryset = Project.objects.filter(
             users=self.request.user)
         return queryset
@@ -123,10 +111,6 @@ class ProjectListCreateAPIView(PermissionRequiredMixin, ListCreateAPIView):
         )
         group = Group.objects.get(name='ProjectOwner')
         user.groups.add(group)
-        user_contributor = user.contributor_set.get(project=project_obj)
-        print('Name of project = ', project_obj.title)
-        print('User = ', user)
-        print('user role = ', user_contributor.role)
 
 
 class ContributorCreateReadDeleteAPIView(
@@ -155,8 +139,7 @@ class ContributorCreateReadDeleteAPIView(
                 status=status.HTTP_404_NOT_FOUND
             )
         self.check_object_permissions(request, project_obj)
-        project_contributors = project_obj.get_contributors
-        serializer = UserSerializer(project_contributors, many=True)
+        serializer = UserSerializer(project_obj.get_contributors, many=True)
         return Response(serializer.data)
 
     def post(self, request, project_pk=None, user_pk=None):
@@ -178,7 +161,7 @@ class ContributorCreateReadDeleteAPIView(
             )
         if user_obj in project_obj.get_contributors:
             return Response(
-                'This user is already added',
+                'User is already added',
                 status=status.HTTP_400_BAD_REQUEST
             )
         project_obj.users.add(
@@ -206,7 +189,7 @@ class ContributorCreateReadDeleteAPIView(
             )
         if user_to_remove not in project_obj.get_contributors:
             return Response(
-                'This user is not a contributor for this project',
+                'User is not a contributor for this project',
                 status=status.HTTP_404_NOT_FOUND
             )
         project_obj.users.remove(user_to_remove)

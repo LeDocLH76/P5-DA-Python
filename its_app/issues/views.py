@@ -1,14 +1,10 @@
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import Http404
-from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, status
 from rest_framework.authentication import SessionAuthentication
-
 from rest_framework.response import Response
-
 from rest_framework.views import APIView
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -16,7 +12,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from its_app.issues.models import Issue
 from its_app.issues.permissions import IsIssueOwner
 from its_app.issues.serializer import IssueSerializer
-from its_app.projects.models import Contributor, Project
+from its_app.projects.models import Project
 
 
 class IssueCreateReadUpdateDeleteAPIView(
