@@ -37,6 +37,10 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         raise_exception=True
     ))
     def retrieve(self, request, pk=None):
+        """
+            View one project details
+            Each contributors of the project can do it
+        """
         project_obj = Project.get_project(request, pk)
         if project_obj is None:
             return Response(
@@ -53,6 +57,10 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         raise_exception=True
     ))
     def update(self, request, pk=None):
+        """
+            Update a project
+            Only project owner can do it
+        """
         project_obj = Project.get_project(request, pk)
         if project_obj is None:
             return Response(
@@ -72,6 +80,10 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         raise_exception=True
     ))
     def delete(self, request, pk=None):
+        """
+            Delete a project
+            Only project owner can do it
+        """
         project_obj = Project.get_project(request, pk)
         if project_obj is None:
             return Response(
@@ -80,10 +92,22 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
             )
         self.check_object_permissions(request, project_obj)
         project_obj.delete()
+        # user is in any project? if not remove from ProjectOwner group
+        queryset = Project.objects.filter(users=self.request.user)
+        if not queryset:
+            group = Group.objects.get(name='ProjectOwner')
+            request.user.groups.remove(group)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProjectListCreateAPIView(PermissionRequiredMixin, ListCreateAPIView):
+    """
+        List user's projects or create a new project for user
+        Any user in group BasicUsers can create a project and
+        can list projects where he is contributor.
+        After creating a project, user join ProjectOwner group,
+        grant owner role and become a contributor for the project.
+    """
     authentication_classes = [
         JWTAuthentication,
         SessionAuthentication,
@@ -113,9 +137,7 @@ class ProjectListCreateAPIView(PermissionRequiredMixin, ListCreateAPIView):
         user.groups.add(group)
 
 
-class ContributorCreateReadDeleteAPIView(
-    PermissionRequiredMixin, APIView, IsProjectOwner
-):
+class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
     authentication_classes = [
         JWTAuthentication,
         SessionAuthentication,
@@ -125,24 +147,34 @@ class ContributorCreateReadDeleteAPIView(
         &
         IsProjectOwner,
     ]
-    permission_required = (
-        'projects.view_project',
-        'projects.add_project',
-        'projects.delete_project',
-    )
 
+    @method_decorator(permission_required(
+        'projects.view_project',
+        raise_exception=True
+    ))
     def get(self, request, project_pk=None, user_pk=None):
+        """
+            List of project contributors
+            Each contributor of a project can see it
+        """
         project_obj = Project.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
                 status=status.HTTP_404_NOT_FOUND
             )
-        self.check_object_permissions(request, project_obj)
         serializer = UserSerializer(project_obj.get_contributors, many=True)
         return Response(serializer.data)
 
+    @method_decorator(permission_required(
+        'projects.change_project',
+        raise_exception=True
+    ))
     def post(self, request, project_pk=None, user_pk=None):
+        """
+            Add a contributor
+            Only project owner can do it
+        """
         project_obj = Project.get_project(request, project_pk)
         if project_obj is None:
             return Response(
@@ -173,7 +205,15 @@ class ContributorCreateReadDeleteAPIView(
             status=status.HTTP_201_CREATED
         )
 
+    @method_decorator(permission_required(
+        'projects.change_project',
+        raise_exception=True
+    ))
     def delete(self, request, project_pk=None, user_pk=None):
+        """
+            Remove a contributor
+            Only project owner can do it
+        """
         project_obj = Project.get_project(request, project_pk)
         if project_obj is None:
             return Response(
@@ -191,6 +231,11 @@ class ContributorCreateReadDeleteAPIView(
             return Response(
                 'User is not a contributor for this project',
                 status=status.HTTP_404_NOT_FOUND
+            )
+        if user_to_remove == request.user:
+            return Response(
+                "You can't remove yourself",
+                status=status.HTTP_403_FORBIDDEN
             )
         project_obj.users.remove(user_to_remove)
         return Response(

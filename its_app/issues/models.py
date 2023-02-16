@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -54,16 +55,13 @@ class Issue(models.Model):
 
     @classmethod
     def get_issue(cls, request, project_obj, issue_pk=None):
-        author_obj = request.user
         if issue_pk:
             try:
                 issue_obj = cls.objects.filter(
-                    project=project_obj.pk,
-                    author=author_obj.pk
+                    Q(project=project_obj.pk),
+                    Q(assignee=request.user.pk) | Q(author=request.user.pk)
                 ).get(pk=issue_pk)
             except cls.DoesNotExist:
                 issue_obj = None
-            print('issue_pk')
             return issue_obj
-
         return None
