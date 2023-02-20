@@ -1,7 +1,5 @@
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.utils.decorators import method_decorator
 
 from rest_framework import permissions, status
@@ -32,7 +30,9 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
     def _get_assignee(self, data, author_obj):
         try:
             assignee_pk = data.pop('assignee')
-            assignee_obj = get_user_model().get_user(user_pk=assignee_pk)
+            assignee_obj = get_user_model().objects.get_user(
+                user_pk=assignee_pk
+            )
             if assignee_obj is None:
                 # not exist
                 return None
@@ -50,7 +50,7 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
             List project issues
             Only contributors can do it
         """
-        project_obj = Project.get_project(request, project_pk)
+        project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
@@ -70,7 +70,7 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
             Only project owner can do it
         """
         author_obj = request.user
-        project_obj = Project.get_project(request, project_pk)
+        project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
@@ -119,13 +119,13 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
             Only issue owner can do it
         """
         author_obj = request.user
-        project_obj = Project.get_project(request, project_pk)
+        project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
                 status=status.HTTP_404_NOT_FOUND
             )
-        issue_obj = Issue.get_issue(request, project_obj, issue_pk)
+        issue_obj = Issue.objects.get_issue(request, project_obj, issue_pk)
         if issue_obj is None:
             return Response(
                 'Issue not found',
@@ -163,13 +163,13 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
             Delete project issue
             Only issue owner can do it
         """
-        project_obj = Project.get_project(request, project_pk)
+        project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
                 status=status.HTTP_404_NOT_FOUND
             )
-        issue_obj = Issue.get_issue(request, project_obj, issue_pk)
+        issue_obj = Issue.objects.get_issue(request, project_obj, issue_pk)
         if issue_obj is None:
             return Response(
                 'Issue not found',

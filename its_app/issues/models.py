@@ -6,6 +6,20 @@ from django.utils import timezone
 from its_app.projects.models import Project
 
 
+class IssueManager(models.Manager):
+    def get_issue(self, request, project_obj, issue_pk=None):
+        if issue_pk:
+            try:
+                issue_obj = self.filter(
+                    Q(project=project_obj.pk),
+                    Q(assignee=request.user.pk) | Q(author=request.user.pk)
+                ).get(pk=issue_pk)
+            except Issue.DoesNotExist:
+                issue_obj = None
+            return issue_obj
+        return None
+
+
 class Issue(models.Model):
     BUG = 'BG'
     IMPROVEMENT = 'IP'
@@ -53,15 +67,4 @@ class Issue(models.Model):
     )
     created_time = models.DateTimeField(default=timezone.now)
 
-    @classmethod
-    def get_issue(cls, request, project_obj, issue_pk=None):
-        if issue_pk:
-            try:
-                issue_obj = cls.objects.filter(
-                    Q(project=project_obj.pk),
-                    Q(assignee=request.user.pk) | Q(author=request.user.pk)
-                ).get(pk=issue_pk)
-            except cls.DoesNotExist:
-                issue_obj = None
-            return issue_obj
-        return None
+    objects = IssueManager()

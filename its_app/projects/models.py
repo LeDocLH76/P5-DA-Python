@@ -2,6 +2,17 @@ from django.db import models
 from django.contrib.auth import get_user_model
 
 
+class ProjectManager(models.Manager):
+    def get_project(self, request, project_pk=None):
+        if project_pk:
+            try:
+                project_obj = self.get(pk=project_pk, users=request.user)
+            except Project.DoesNotExist:
+                project_obj = None
+            return project_obj
+        return None
+
+
 class Contributor(models.Model):
     OWNER = 'OW'
     CONTRIBUTOR = 'CO'
@@ -43,17 +54,7 @@ class Project(models.Model):
         through=Contributor,
     )
 
-    @classmethod
-    def get_project(cls, request, project_pk=None):
-        if project_pk:
-            try:
-                project_obj = cls.objects.filter(
-                    users=request.user
-                ).get(pk=project_pk)
-            except cls.DoesNotExist:
-                project_obj = None
-            return project_obj
-        return None
+    objects = ProjectManager()
 
     @property
     def get_contributors(self):

@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import Group
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework import status

@@ -41,7 +41,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
             View one project details
             Each contributors of the project can do it
         """
-        project_obj = Project.get_project(request, pk)
+        project_obj = Project.objects.get_project(request, pk)
         if project_obj is None:
             return Response(
                 'Project not found',
@@ -61,7 +61,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
             Update a project
             Only project owner can do it
         """
-        project_obj = Project.get_project(request, pk)
+        project_obj = Project.objects.get_project(request, pk)
         if project_obj is None:
             return Response(
                 'Project not found',
@@ -84,7 +84,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
             Delete a project
             Only project owner can do it
         """
-        project_obj = Project.get_project(request, pk)
+        project_obj = Project.objects.get_project(request, pk)
         if project_obj is None:
             return Response(
                 'Project not found',
@@ -157,13 +157,14 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
             List of project contributors
             Each contributor of a project can see it
         """
-        project_obj = Project.get_project(request, project_pk)
+        project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = UserSerializer(project_obj.get_contributors, many=True)
+        serializer = UserSerializer(
+            project_obj.get_contributors, many=True)
         return Response(serializer.data)
 
     @method_decorator(permission_required(
@@ -175,7 +176,7 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
             Add a contributor
             Only project owner can do it
         """
-        project_obj = Project.get_project(request, project_pk)
+        project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
             return Response(
                 'Project not found',
@@ -185,7 +186,7 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
         serializer = AddUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
-        user_obj = get_user_model().get_user(username=username)
+        user_obj = get_user_model().objects.get_user(username=username)
         if user_obj is None:
             return Response(
                 'User does not exist',
@@ -214,14 +215,16 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
             Remove a contributor
             Only project owner can do it
         """
-        project_obj = Project.get_project(request, project_pk)
+
+        project_obj = Project.objects.get_project(request, project_pk)
+
         if project_obj is None:
             return Response(
                 'Project not found',
                 status=status.HTTP_404_NOT_FOUND
             )
         self.check_object_permissions(request, project_obj)
-        user_to_remove = get_user_model().get_user(user_pk=user_pk)
+        user_to_remove = get_user_model().objects.get_user(user_pk=user_pk)
         if user_to_remove is None:
             return Response(
                 'User does not exist',
