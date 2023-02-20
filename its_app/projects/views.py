@@ -100,7 +100,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ProjectListCreateAPIView(PermissionRequiredMixin, ListCreateAPIView):
+class ProjectListCreateAPIView(ListCreateAPIView, PermissionRequiredMixin):
     """
         List user's projects or create a new project for user
         Any user in group BasicUsers can create a project and

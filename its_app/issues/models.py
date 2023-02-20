@@ -49,8 +49,8 @@ class Issue(models.Model):
         (COMPLETED, 'Completed'),
     ]
 
-    title = models.CharField(max_length=255, blank=False)
-    description = models.TextField(blank=False)
+    title = models.CharField(max_length=255, blank=False, null=False)
+    description = models.TextField(blank=False, null=False)
     tag = models.CharField(max_length=4, choices=ISSUE_TAG)
     priority = models.CharField(max_length=4, choices=ISSUE_PRIORITY)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

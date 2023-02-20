@@ -178,5 +178,6 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
         self.check_object_permissions(request, issue_obj)
         issue_obj.delete()
         return Response(
+            'Issue succesfully deleted',
             status=status.HTTP_204_NO_CONTENT
         )

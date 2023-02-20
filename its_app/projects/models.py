@@ -46,8 +46,8 @@ class Project(models.Model):
         (ANDROID, 'Android'),
         (IOS, 'iOS'),
     ]
-    title = models.CharField(max_length=255, blank=False, )
-    description = models.TextField(blank=False)
+    title = models.CharField(max_length=255, blank=False, null=False)
+    description = models.TextField(blank=False, null=False)
     type = models.CharField(max_length=4, choices=PROJECT_TYPES)
     users = models.ManyToManyField(
         get_user_model(),

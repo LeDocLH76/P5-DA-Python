@@ -1,8 +1,8 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 
-class MyUserManager(models.Manager):
+class MyUserManager(UserManager):  # models.Manager,
     def get_user(self, user_pk=None, username=None):
         """
             Find a user by username or pk
