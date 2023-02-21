@@ -8,6 +8,10 @@ from its_app.projects.models import Project
 
 class IssueManager(models.Manager):
     def get_issue(self, request, project_obj, issue_pk=None):
+        """
+            Return Issue if request.user is owner or assignee on issue,
+            None for other cases.
+        """
         if issue_pk:
             try:
                 issue_obj = self.filter(
