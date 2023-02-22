@@ -147,8 +147,7 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
         data['assignee'] = assignee_obj.pk
         serializer = IssueSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        data['assignee'] = assignee_obj
-        serializer.update(issue_obj, data)
+        serializer.update(issue_obj, serializer.validated_data)
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED

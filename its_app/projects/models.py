@@ -4,6 +4,10 @@ from django.contrib.auth import get_user_model
 
 class ProjectManager(models.Manager):
     def get_project(self, request, project_pk=None):
+        """
+            Return Project if request.user is owner or contributor,
+            None for other cases.
+        """
         if project_pk:
             try:
                 project_obj = self.get(pk=project_pk, users=request.user)

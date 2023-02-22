@@ -95,7 +95,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         # user is in any project? if not remove from ProjectOwner group
         queryset = Project.objects.filter(users=self.request.user)
         if not queryset:
-            group = Group.objects.get(name='ProjectOwner')
+            group = Group.objects.get(name='ProjectContributor')
             request.user.groups.remove(group)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -105,7 +105,7 @@ class ProjectListCreateAPIView(ListCreateAPIView, PermissionRequiredMixin):
         List user's projects or create a new project for user
         Any user in group BasicUsers can create a project and
         can list projects where he is contributor.
-        After creating a project, user join ProjectOwner group,
+        After creating a project, user join ProjectContributor group,
         grant owner role and become a contributor for the project.
     """
     authentication_classes = [
@@ -133,7 +133,7 @@ class ProjectListCreateAPIView(ListCreateAPIView, PermissionRequiredMixin):
             user,
             through_defaults={'role': Contributor.OWNER}
         )
-        group = Group.objects.get(name='ProjectOwner')
+        group = Group.objects.get(name='ProjectContributor')
         user.groups.add(group)
 
 
