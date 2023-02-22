@@ -34,25 +34,21 @@ class Issue(models.Model):
     TODO = 'TD'
     ONGOING = 'OG'
     COMPLETED = 'CP'
-
     ISSUE_TAG = [
         (BUG, 'Bug'),
         (IMPROVEMENT, 'Improvement'),
         (TASK, 'Task'),
     ]
-
     ISSUE_PRIORITY = [
         (LOW, 'Low'),
         (MEDIUM, 'Medium'),
         (HIGHT, 'Hight'),
     ]
-
     ISSUE_STATUS = [
         (TODO, 'Todo'),
         (ONGOING, 'Ongoing'),
         (COMPLETED, 'Completed'),
     ]
-
     title = models.CharField(max_length=255, blank=False, null=False)
     description = models.TextField(blank=False, null=False)
     tag = models.CharField(max_length=4, choices=ISSUE_TAG)
@@ -70,5 +66,4 @@ class Issue(models.Model):
         related_name='assignee_issue_set'
     )
     created_time = models.DateTimeField(default=timezone.now)
-
     objects = IssueManager()

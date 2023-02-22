@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -29,5 +28,4 @@ class Comment(models.Model):
     )
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
     created_time = models.DateTimeField(default=timezone.now)
-
     objects = CommentManager()

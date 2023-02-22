@@ -17,6 +17,9 @@ from its_app.projects.permissions import IsProjectOwner
 
 
 class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
+    """
+        CRUD operations for Issues
+    """
     authentication_classes = [
         JWTAuthentication,
         SessionAuthentication,
@@ -28,6 +31,10 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
     ]
 
     def _get_assignee(self, data, author_obj):
+        """
+            Return user to assign if (is in request.data and is valid) or None
+            Return project owner by default
+        """
         try:
             assignee_pk = data.pop('assignee')
             assignee_obj = get_user_model().objects.get_user(

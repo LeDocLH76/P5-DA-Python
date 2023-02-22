@@ -104,7 +104,7 @@ class CommentReadUpdateDeleteAPIView(APIView, IsCommentOwner):
     ))
     def get(self, request, project_pk=None, issue_pk=None, comment_pk=None):
         """
-            List one comment detail
+            List one comment details
             Only issue owner and assignee can do it
         """
         project_obj = Project.objects.get_project(request, project_pk)

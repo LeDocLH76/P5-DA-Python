@@ -22,6 +22,13 @@ from its_app.projects.serializers import (
 
 
 class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
+    """
+        Project getOne updateOne deleteOne
+        Only users in group ProjectContributor can do it
+        Only project owner can update or delete.
+        After deleting a project, user is remove from ProjectContributor group
+        if he is not contributor on one project.
+    """
     permission_classes = [
         permissions.IsAuthenticated
         &
@@ -92,7 +99,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
             )
         self.check_object_permissions(request, project_obj)
         project_obj.delete()
-        # user is in any project? if not remove from ProjectOwner group
+        # user is in any project? if not remove from ProjectContributor group
         queryset = Project.objects.filter(users=self.request.user)
         if not queryset:
             group = Group.objects.get(name='ProjectContributor')
@@ -138,6 +145,12 @@ class ProjectListCreateAPIView(ListCreateAPIView, PermissionRequiredMixin):
 
 
 class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
+    """
+        List contributors of one project
+        Only contributors can do it
+        Add or remove a contributor of one project
+        Only project owner can do it
+    """
     authentication_classes = [
         JWTAuthentication,
         SessionAuthentication,
@@ -154,8 +167,8 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
     ))
     def get(self, request, project_pk=None, user_pk=None):
         """
-            List of project contributors
-            Each contributor of a project can see it
+            List contributors of project
+            Each contributor of a project can do it
         """
         project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
@@ -173,7 +186,7 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
     ))
     def post(self, request, project_pk=None, user_pk=None):
         """
-            Add a contributor
+            Add a contributor on a project
             Only project owner can do it
         """
         project_obj = Project.objects.get_project(request, project_pk)
@@ -212,12 +225,10 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
     ))
     def delete(self, request, project_pk=None, user_pk=None):
         """
-            Remove a contributor
+            Remove a contributor from a project
             Only project owner can do it
         """
-
         project_obj = Project.objects.get_project(request, project_pk)
-
         if project_obj is None:
             return Response(
                 'Project not found',

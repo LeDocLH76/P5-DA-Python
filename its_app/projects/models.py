@@ -18,9 +18,11 @@ class ProjectManager(models.Manager):
 
 
 class Contributor(models.Model):
+    """
+        Use for relation many to many between MyUser and Project
+    """
     OWNER = 'OW'
     CONTRIBUTOR = 'CO'
-
     USER_ROLES = [
         (OWNER, 'Owner'),
         (CONTRIBUTOR, 'Contributor'),
