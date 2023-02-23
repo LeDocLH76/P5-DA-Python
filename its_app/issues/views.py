@@ -30,10 +30,10 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
         IsIssueOwner
     ]
 
-    def _get_assignee(self, data, author_obj):
+    def _get_assignee(self, data, author_obj, issue_obj=None):
         """
             Return user to assign if (is in request.data and is valid) or None
-            Return project owner by default
+            Return project owner by default or existing one for update
         """
         try:
             assignee_pk = data.pop('assignee')
@@ -44,8 +44,12 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
                 # not exist
                 return None
         except KeyError:
-            # by default
-            assignee_obj = author_obj
+            if issue_obj:
+                # for update case, keep it
+                assignee_obj = issue_obj.assignee
+            else:
+                # by default at create
+                assignee_obj = author_obj
         return assignee_obj
 
     @method_decorator(permission_required(
@@ -140,7 +144,7 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
             )
         self.check_object_permissions(request, issue_obj)
         data = request.data.copy()
-        assignee_obj = self._get_assignee(data, author_obj)
+        assignee_obj = self._get_assignee(data, author_obj, issue_obj)
         if assignee_obj is None:
             return Response(
                 'User to assign not found',

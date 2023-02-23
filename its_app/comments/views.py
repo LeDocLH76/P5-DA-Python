@@ -31,8 +31,8 @@ class CommentCreateReadAPIView(APIView):
     ))
     def get(self, request, project_pk=None, issue_pk=None):
         """
-            List issue comments
-            Only issue owner and assignee can do it
+            List issue comments for the project.
+            Only issue owner and assignee can do it.
         """
         project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:
@@ -57,8 +57,8 @@ class CommentCreateReadAPIView(APIView):
     ))
     def post(self, request, project_pk=None, issue_pk=None):
         """
-            Create one comment on issue
-            Only issue owner or assignee can do it
+            Create one comment on issue for the project.
+            Only issue owner or assignee can do it.
         """
         project_obj = Project.objects.get_project(request, project_pk)
         if project_obj is None:

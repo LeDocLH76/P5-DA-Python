@@ -1,9 +1,14 @@
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import Group
-from rest_framework.response import Response
+
+from rest_framework import permissions, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import GenericAPIView, ListAPIView
-from rest_framework import status
+from rest_framework.response import Response
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from its_app.users.serializers import (
     UserSerializer,
     RegisterSerializer,
@@ -23,6 +28,7 @@ class RegisterAPIView(GenericAPIView):
         response = {
             'message': 'User succesfully created',
             'data': {
+                "id": user.pk,
                 "username": user.username,
                 "email": user.email,
                 "first_name": user.first_name,
@@ -33,8 +39,15 @@ class RegisterAPIView(GenericAPIView):
 
 
 class UserListAPIView(ListAPIView):
+    authentication_classes = [
+        JWTAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
     serializer_class = UserSerializer
-    queryset = get_user_model().objects.all().order_by('-date_joined')
+    queryset = get_user_model().objects.all().order_by('username')
 
 
 class UserLoginAPIView(GenericAPIView):
