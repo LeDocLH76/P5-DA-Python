@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         BasicUser, created = Group.objects.get_or_create(
-            name='BasicUser'
+            name='BasicUsers'
         )
         ProjectContributor, created = Group.objects.get_or_create(
             name='ProjectContributor'

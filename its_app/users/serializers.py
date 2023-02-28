@@ -19,7 +19,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username', 'password', 'email', 'first_name', 'last_name']
 
     def validate_password(self, data):
-
+        """
+            Validate password with AUTH_PASSWORD_VALIDATORS [] from settings.
+        """
         user = get_user_model()(
             username=self.initial_data['username'],
             password=self.initial_data['password'],
@@ -27,14 +29,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=self.initial_data['first_name'],
             last_name=self.initial_data['last_name'],
         )
-        errors = dict()
+        errors = False
         try:
             password_validation.validate_password(
                 password=user.password,
                 user=user
             )
-        except ValidationError as e:
-            errors['password'] = list(e.messages)
+        except ValidationError as err:
+            errors = err.messages
         if errors:
             raise serializers.ValidationError(errors)
         return super(RegisterSerializer, self).validate(data)
