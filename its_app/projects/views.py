@@ -111,7 +111,7 @@ class ProjectListCreateAPIView(ListCreateAPIView, PermissionRequiredMixin):
     """
         List user's projects or create a new project for user
         Any user in group BasicUsers can create a project and
-        can list projects where he is contributor.
+        can list projects where he is owner or contributor.
         After creating a project, user join ProjectContributor group,
         grant owner role and become a contributor for the project.
     """
