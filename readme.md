@@ -4,7 +4,7 @@ Project: P5 Créez une API sécurisée RESTful en utilisant Django REST
 
 step by step > to be completed
 
-Gitclone
+Gitclone this repository
 
 `python -m venv .env`
 
@@ -12,7 +12,9 @@ Gitclone
 
 `python -m pip install -r requirements.txt`
 
-copy .env in config
+Create a .env file in config directory with 2 constants like this:
+`DJANGO-SECRET-KEY = 'Your secret key is here'
+POSTGRESPASSWORD = 'Your password'`
 
 `python manage.py migrate`
 
@@ -22,7 +24,7 @@ copy .env in config
 
 `python manage.py runserver`
 
-database state after populate
+database state after loaddata:
 
 |        |         | Username |   User1    |   User2    |   User3    |   User4    |   User5    |   User6    |
 | :----: | :-----: | :------: | :--------: | :--------: | :--------: | :--------: | :--------: | :--------: |
