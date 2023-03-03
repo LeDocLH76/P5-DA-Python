@@ -1,8 +1,9 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
-from rest_framework.serializers import CharField, Serializer, ModelSerializer
+from rest_framework.serializers import (
+    CharField, Serializer, ModelSerializer, SerializerMethodField)
 
-from its_app.projects.models import Project
+from its_app.projects.models import Project, Contributor
 from its_app.users.models import MyUser
 
 
@@ -13,9 +14,14 @@ class ProjectSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
+    user_role = SerializerMethodField()
+
+    def get_user_role(self, user):
+        return user.contributor_set.get(project=self.context.id).role
+
     class Meta:
         model = MyUser
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'user_role']
 
 
 class AddUserSerializer(Serializer):

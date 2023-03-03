@@ -173,7 +173,7 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = UserSerializer(
-            project_obj.get_contributors, many=True)
+            project_obj.get_contributors, many=True, context=project_obj)
         return Response(serializer.data)
 
     @method_decorator(permission_required(

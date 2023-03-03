@@ -67,6 +67,7 @@ class Project(models.Model):
         project_contributors = [
             record.user
             for
-            record in Contributor.objects.filter(project=self.pk)
+            record in Contributor.objects.filter(
+                project=self.pk).order_by('-role')
         ]
         return project_contributors
