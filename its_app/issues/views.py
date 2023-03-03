@@ -107,7 +107,6 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
                 'User to assign must be contributor before',
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         data['assignee'] = assignee_obj.pk
         serializer = IssueSerializer(data=data)
         serializer.is_valid(raise_exception=True)

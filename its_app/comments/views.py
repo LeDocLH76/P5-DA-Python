@@ -47,7 +47,6 @@ class CommentCreateReadAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         issue_comments = Comment.objects.filter(issue=issue_obj)
-
         serializer = CommentSerializer(issue_comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

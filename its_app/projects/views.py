@@ -58,9 +58,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         return Response(serializer.data)
 
     @method_decorator(permission_required(
-        [
-            'projects.change_project',
-        ],
+        'projects.change_project',
         raise_exception=True
     ))
     def update(self, request, pk=None):
@@ -81,9 +79,7 @@ class ProjectRetrieveUpdateDestroyViewset(viewsets.ViewSet, IsProjectOwner):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @method_decorator(permission_required(
-        [
-            'projects.delete_project',
-        ],
+        'projects.delete_project',
         raise_exception=True
     ))
     def delete(self, request, pk=None):

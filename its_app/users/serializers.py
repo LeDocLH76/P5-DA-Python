@@ -51,7 +51,6 @@ class LoginSerialiser(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        # print('data = ', data)
         user = authenticate(**data)
         if user:
             return user

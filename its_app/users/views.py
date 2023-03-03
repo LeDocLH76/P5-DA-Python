@@ -57,11 +57,7 @@ class UserLoginAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
-        print('user = ', user)
-        # print('user.username = ', user.username)
-        # print('user.password = ', user.password)
         tokens = self.get_tokens_for_user(user)
-        # print('Tokens = ', tokens)
         login(request, user)
         return Response(
             data={
@@ -74,7 +70,6 @@ class UserLoginAPIView(GenericAPIView):
 
     def get_tokens_for_user(self, user):
         refresh = RefreshToken.for_user(user)
-        # print('refresh = ', refresh)
         return {
             'refresh': str(refresh),
             'access': str(refresh.access_token),
