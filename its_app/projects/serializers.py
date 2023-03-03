@@ -3,7 +3,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework.serializers import (
     CharField, Serializer, ModelSerializer, SerializerMethodField)
 
-from its_app.projects.models import Project, Contributor
+from its_app.projects.models import Project
 from its_app.users.models import MyUser
 
 
@@ -29,7 +29,8 @@ class AddUserSerializer(Serializer):
     username = CharField(
         max_length=150,
         help_text=(
-            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+            """Required. 150 characters or fewer. Letters,
+ digits and @/./+/-/_ only."""
         ),
         validators=[username_validator],
     )
