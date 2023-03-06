@@ -8,6 +8,7 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -156,6 +157,8 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
         &
         IsProjectOwner,
     ]
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    paginator = pagination_class()
 
     @method_decorator(permission_required(
         'projects.view_project',
@@ -172,9 +175,11 @@ class ContributorCreateReadDeleteAPIView(APIView, IsProjectOwner):
                 'Project not found',
                 status=status.HTTP_404_NOT_FOUND
             )
+        page = self.paginator.paginate_queryset(
+            project_obj.get_contributors, request, view=self)
         serializer = UserSerializer(
-            project_obj.get_contributors, many=True, context=project_obj)
-        return Response(serializer.data)
+            page, many=True, context=project_obj)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @method_decorator(permission_required(
         'projects.change_project',

@@ -4,6 +4,7 @@ from django.utils.decorators import method_decorator
 from rest_framework import permissions, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -24,6 +25,8 @@ class CommentCreateReadAPIView(APIView):
         SessionAuthentication,
     ]
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    paginator = pagination_class()
 
     @method_decorator(permission_required(
         'projects.view_project',
@@ -47,8 +50,11 @@ class CommentCreateReadAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         issue_comments = Comment.objects.filter(issue=issue_obj)
-        serializer = CommentSerializer(issue_comments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginator.paginate_queryset(
+            issue_comments, request, view=self)
+
+        serializer = CommentSerializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @method_decorator(permission_required(
         'projects.view_project',

@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from rest_framework import permissions, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -29,6 +30,8 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
         &
         IsIssueOwner
     ]
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    paginator = pagination_class()
 
     def _get_assignee(self, data, author_obj, issue_obj=None):
         """
@@ -68,8 +71,11 @@ class IssueCreateReadUpdateDeleteAPIView(APIView, IsIssueOwner):
                 status=status.HTTP_404_NOT_FOUND
             )
         project_issues = Issue.objects.filter(project=project_pk)
-        serializer = IssueSerializer(project_issues, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginator.paginate_queryset(
+            project_issues, request, view=self)
+
+        serializer = IssueSerializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @method_decorator(permission_required(
         'projects.change_project',
