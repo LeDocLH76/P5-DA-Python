@@ -1,30 +1,28 @@
-OpenClassRooms student project
-Course: Développement d’une application avec Python
-Project: P5 Créez une API sécurisée RESTful en utilisant Django REST
+## OpenClassRooms student project
 
-step by step > to be completed
+### Course: Développement d’une application avec Python
 
-Gitclone this repository
+#### Project: P5 Créez une API sécurisée RESTful en utilisant Django REST
 
-`python -m venv .env`
+##### To test this project, follow the steps step by step
 
-`.\.env\Scripts\activate`
+-   Clone this repository.
+-   Create a virtual environment. `python -m venv .env`.
+-   Enable virtual environment. `.\.env\Scripts\activate`.
+-   Install dependencies. `python -m pip install -r requirements.txt`.
+-   Create a .env file in config directory with 2 constants like this:
+    -   `DJANGO-SECRET-KEY = 'Your secret key is here`
+    -   `POSTGRESPASSWORD = 'Your password'`
+-   Perform migrations. `python manage.py migrate`.
+-   Create groups and permissions. `python manage.py build_groups`.
+-   Populate the database. `python manage.py loaddata db-short.json`.
+-   Start the server. `python manage.py runserver`.
 
-`python -m pip install -r requirements.txt`
+Read the postman documentation [here](https://documenter.getpostman.com/view/20281154/2s93CRJBAw), and test endpoints.  
+To help you for this, the database contain fake data for users and projects.
 
-Create a .env file in config directory with 2 constants like this:
-`DJANGO-SECRET-KEY = 'Your secret key is here'
-POSTGRESPASSWORD = 'Your password'`
-
-`python manage.py migrate`
-
-`python manage.py build_groups`
-
-`python manage.py loaddata db-short.json`
-
-`python manage.py runserver`
-
-database state after loaddata:
+Database state after loaddata:
+OW = Owner, CO = Contributor
 
 |        |         | Username |   User1    |   User2    |   User3    |   User4    |   User5    |   User6    |
 | :----: | :-----: | :------: | :--------: | :--------: | :--------: | :--------: | :--------: | :--------: |
